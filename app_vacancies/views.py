@@ -1,5 +1,5 @@
 from django.http import HttpResponseNotFound, HttpResponseServerError, Http404
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.views import View
 
 from app_vacancies.models import Specialty, Company, Vacancy
@@ -31,25 +31,21 @@ class VacanciesView(View):
 class CategoryView(View):
 
     def get(self, request, categories):
-        if len(Specialty.objects.filter(code=categories)) == 0:
-            raise Http404
-        category = Specialty.objects.get(code=categories)
-        vacancies = Vacancy.objects.filter(specialty=category)
-        total = Vacancy.objects.filter(specialty=category).count()
+        get_object_or_404(Specialty.objects.filter(code=categories))
+        speciality = Specialty.objects.get(code=categories)
+        vacancies = Vacancy.objects.filter(specialty=speciality)
         return render(request, 'vacancies.html', {"title": categories,
                                                   "heading": 'Вакансии | Джуманджи',
                                                   "vacancies": vacancies,
-                                                  "total": total,
                                                   })
 
 
 class CompanyView(View):
 
-    def get(self, request, company):
-        if len(Specialty.objects.filter(id=company)) == 0:
-            raise Http404
-        firms = Company.objects.filter(id=company)
-        company_filter = Company.objects.get(id=company)
+    def get(self, request, company_id):
+        get_object_or_404(Company.objects.filter(id=company_id))
+        firms = Company.objects.filter(id=company_id)
+        company_filter = Company.objects.get(id=company_id)
         vacancies = Vacancy.objects.filter(company=company_filter)
         return render(request, 'company.html', {"heading": 'Компания | Джуманджи',
                                                 "vacancies": vacancies,
@@ -60,8 +56,7 @@ class CompanyView(View):
 class VacancyView(View):
 
     def get(self, request, vacancy):
-        if len(Vacancy.objects.filter(id=vacancy)) == 0:
-            raise Http404
+        get_object_or_404(Vacancy.objects.filter(id=vacancy))
         vacancies = Vacancy.objects.filter(id=vacancy)
         return render(request, 'vacancy.html', {"heading": 'Вакансия | Джуманджи',
                                                 "vacancies": vacancies,

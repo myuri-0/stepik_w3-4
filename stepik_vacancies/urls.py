@@ -8,7 +8,7 @@ urlpatterns = [
     path('', MainView.as_view()),
     path('vacancies/', VacanciesView.as_view(), name='vacancies'),
     path('vacancies/cat/<str:categories>/', CategoryView.as_view()),
-    path('companies/<int:company>/', CompanyView.as_view(), name='companies'),
+    path('companies/<int:company_id>/', CompanyView.as_view(), name='companies'),
     path('vacancies/<int:vacancy>/', VacancyView.as_view()),
     path('admin/', admin.site.urls),
 ]
