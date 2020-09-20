@@ -1,7 +1,12 @@
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import LoginView
 from django.http import HttpResponseNotFound, HttpResponseServerError, Http404
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
+from django.views.generic import CreateView
 
+from app_vacancies.form import ApplicationForm
 from app_vacancies.models import Specialty, Company, Vacancy
 
 
@@ -55,12 +60,55 @@ class CompanyView(View):
 
 class VacancyView(View):
 
-    def get(self, request, vacancy):
-        get_object_or_404(Vacancy.objects.filter(id=vacancy))
-        vacancies = Vacancy.objects.filter(id=vacancy)
+    def get(self, request, vacancy_id):
+        get_object_or_404(Vacancy.objects.filter(id=vacancy_id))
+        vacancies = Vacancy.objects.filter(id=vacancy_id)
+        id_vacancy = vacancy_id
         return render(request, 'vacancy.html', {"heading": 'Вакансия | Джуманджи',
                                                 "vacancies": vacancies,
+                                                "vacancy_form": ApplicationForm,
+                                                'vacancy_id': id_vacancy
                                                 })
+
+    def post(self, request, vacancy_id):
+        form = ApplicationForm(request.POST)
+        if form.is_valid():
+            form = form.save(commit=False)
+            form.vacancy = Vacancy.objects.get(id=vacancy_id)
+            form.user = request.user if request.user.is_authenticated else None
+            form.save()
+            return redirect(f'/vacancies/{vacancy_id}/sent/')
+
+        return render(
+            request, 'vacancy.html',
+            context={
+                "vacancy_form": ApplicationForm,
+            }
+        )
+
+
+class SentView(View):
+
+    def get(self, request, vacancy_id):
+        get_object_or_404(Vacancy.objects.filter(id=vacancy_id))
+        vacancy = Vacancy.objects.get(id=vacancy_id)
+        return render(
+            request, 'sent.html', context={
+                'vacancy': vacancy,
+                "heading": "Отклик отправлен",
+            }
+        )
+
+
+class MySignupView(CreateView):
+    form_class = UserCreationForm
+    success_url = 'login/'
+    template_name = 'register.html'
+
+
+class MyLoginView(LoginView):
+    redirect_authenticated_user = True
+    template_name = 'login.html'
 
 
 def custom_handler404(request, exception):
