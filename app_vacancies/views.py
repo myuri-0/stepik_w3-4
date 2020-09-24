@@ -1,12 +1,11 @@
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
-from django.http import HttpResponseNotFound, HttpResponseServerError, Http404
+from django.http import HttpResponseNotFound, HttpResponseServerError
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
 from django.views.generic import CreateView
 
-from app_vacancies.form import ApplicationForm
+from app_vacancies.form import ApplicationForm, CompanyForm
 from app_vacancies.models import Specialty, Company, Vacancy
 
 
@@ -98,6 +97,74 @@ class SentView(View):
                 "heading": "Отклик отправлен",
             }
         )
+
+
+class MyVacancyView(View):
+
+    def get(self, request):
+        return render(request, "vacancy-list.html.html")
+
+
+class MyCompanyView(View):
+
+    def get(self, request):
+        try:
+            company = Company.objects.get(owner=request.user)
+            form = CompanyForm(instance=company)
+            return render(
+                request, 'company_edit.html', context={
+                    'company': company,
+                    'form': form
+                }
+            )
+        except Company.DoesNotExist:
+            return render(request, 'not_company.html')
+
+    def post(self, request):
+        current_user = request.user
+        company = Company.objects.get(owner=current_user)
+
+        form = CompanyForm(request.POST, instance=company)
+
+        if form.is_valid():
+            form = form.save(commit=False)
+            form.owner = current_user
+            form.save()
+            return redirect('/mycompany/')
+        else:
+            form = CompanyForm(instance=company)
+
+        return render(
+            request, 'company_edit.html',
+            context={
+                'form': form,
+                'company': company
+            })
+
+
+class MyCompanyCreateView(View):
+    def get(self, request):
+
+        form = CompanyForm()
+        return render(
+            request, 'company_create.html', context={
+                'form': form
+            }
+        )
+
+    def post(self, request):
+        if request.method == "POST":
+            form = CompanyForm(request.POST)
+            print(form.is_valid(), form.errors)
+            if form.is_valid():
+                form = form.save(commit=False)
+                form.owner = request.user
+                form.logo = 'https://place-hold.it/130x80'
+                form.save()
+                return redirect('/mycompany/', pk=form.pk)
+        else:
+            form = CompanyForm()
+        return render(request, 'company_create.html', {'form': form})
 
 
 class MySignupView(CreateView):
