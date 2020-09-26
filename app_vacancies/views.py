@@ -1,11 +1,12 @@
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView
 from django.http import HttpResponseNotFound, HttpResponseServerError
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
 from django.views.generic import CreateView
 
-from app_vacancies.form import ApplicationForm, CompanyForm, MyVacancyEditForm
+from app_vacancies.form import ApplicationForm, CompanyForm, MyVacancyEditForm, UserRegisterForm
 from app_vacancies.models import Specialty, Company, Vacancy, Application
 
 
@@ -229,10 +230,30 @@ class MyCompanyCreateView(View):
         return render(request, 'company_create.html', {'form': form})
 
 
-class MySignupView(CreateView):
-    form_class = UserCreationForm
-    success_url = 'login/'
+class MySignupView(LoginView):
     template_name = 'register.html'
+
+    def get(self, request):
+        form = UserRegisterForm()
+        return render(
+            request, self.template_name,
+            context={
+                'form': form
+            }
+        )
+
+    def post(self, request):
+        form = UserRegisterForm(request.POST)
+        if form.is_valid():
+            user = User.objects.create_user(**form.cleaned_data)
+            user.save()
+            return redirect('/login/')
+        return render(
+            request, self.template_name,
+            context={
+                'form': form
+            }
+        )
 
 
 class MyLoginView(LoginView):

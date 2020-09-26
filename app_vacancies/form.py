@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.models import User
 
 from app_vacancies.models import Application, Company, Specialty, Vacancy
 
@@ -129,3 +130,46 @@ class MyVacancyEditForm(forms.ModelForm):
     class Meta:
         model = Vacancy
         fields = ('title', 'salary_min', 'salary_max', 'skills', 'description', )
+
+
+class UserRegisterForm(forms.ModelForm):
+    username = forms.CharField(
+        label='Логин',
+        widget=forms.TextInput(
+            attrs={
+                'autofocus': True,
+                'class': 'form-control',
+                'id': 'inputLogin'}
+        )
+    )
+    first_name = forms.CharField(
+        label='Имя',
+        widget=forms.TextInput(
+            attrs={
+                'autofocus': True,
+                'class': 'form-control',
+                'id': 'inputName'}
+        )
+    )
+    last_name = forms.CharField(
+        label='Фамилия',
+        widget=forms.TextInput(
+            attrs={
+                'autofocus': True,
+                'class': 'form-control',
+                'id': 'inputSurname'}
+        )
+    )
+    password = forms.CharField(
+        label="Пароль",
+        widget=forms.PasswordInput(
+            attrs={
+                'autofocus': True,
+                'class': 'form-control',
+                'id': 'inputPassword'}
+        )
+    )
+
+    class Meta:
+        model = User
+        fields = ('username', 'password', 'first_name', 'last_name',)

@@ -11,19 +11,23 @@
   <main class="container">
     <div class="row">
       <div class="col-8 col-lg-4 offset-2 offset-lg-4">
-        <form class="form-signin pt-5">
+        <form method="POST" action="/register/" class="form-signin pt-5" >
+          {% csrf_token %}
           <div class="text-center mt-5 b-1">
-            <h1 class="h3 mb-3 font-weight-normal">Джуманджи</h1>
+            <h1 class="h3 mb-3 font-weight-normal">Джуманджи {{text}}</h1>
             <p class="h5 font-weight-light">Создайте аккаунт</p>
           </div>
-              <form method="post" action="register/">{% csrf_token %}
-               <table>{{ form.as_table }}</table>
-              <button class="btn btn-primary btn-lg btn-block" type="submit">Зарегистрироваться</button>
-              </form>
-          <div class="checkbox mb-3"></div>
-        </form>
+          {% for field in form %}
+          <div class="mt-2 form-label-group">
+            {{ field.errors }}
+            <p class="text-muted"> {{ field.label_tag }}</p>
+            {{ field }}
+          </div>
+          {% endfor %}
+            <div class="checkbox mb-3"></div>
+          <button class="mt-4 btn btn-primary btn-lg btn-block" type="submit">Зарегистрироваться</button>
          <div class="mt-4 text-center"><p>Есть аккаунт? <a href="/login">Войдите!</a></p></div>
-
+        </form>
       </div>
     </div>
   </main>
