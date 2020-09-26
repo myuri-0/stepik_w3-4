@@ -5,7 +5,8 @@ from django.contrib.auth.views import LogoutView
 from django.urls import path
 
 from app_vacancies.views import MainView, VacanciesView, CategoryView, CompanyView, VacancyView, custom_handler404, \
-    custom_handler500, MySignupView, MyLoginView, SentView, MyCompanyView, MyVacancyView, MyCompanyCreateView
+    custom_handler500, MySignupView, MyLoginView, SentView, MyCompanyView, MyVacancyView, MyCompanyCreateView, \
+    MyVacancyEditView
 
 urlpatterns = [
     path('', MainView.as_view()),
@@ -17,6 +18,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('mycompany/', MyCompanyView.as_view(), name='company'),
     path('mycompany/vacancies/', MyVacancyView.as_view(), name='myvacancy'),
+    path('mycompany/vacancies/<int:id_vacancy>/', MyVacancyEditView.as_view()),
     path('mycompany/create/', MyCompanyCreateView.as_view()),
 ]
 

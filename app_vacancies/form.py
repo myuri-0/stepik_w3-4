@@ -1,6 +1,6 @@
 from django import forms
 
-from app_vacancies.models import Application, Company
+from app_vacancies.models import Application, Company, Specialty, Vacancy
 
 
 class ApplicationForm(forms.ModelForm):
@@ -54,3 +54,78 @@ class CompanyForm(forms.ModelForm):
         model = Company
         fields = ['name', 'location', 'logo',
                   'description', 'employee_count']
+
+
+class MyVacancyEditForm(forms.ModelForm):
+
+    title = forms.CharField(
+        max_length=64,
+        label='Название вакансии',
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'id': 'vacancyTitle',
+                'type': 'text',
+            }
+        )
+    )
+    specialty = forms.ChoiceField(
+        label='Специализация',
+        widget=forms.Select(
+            attrs={
+                'class': 'custom-select mr-sm-2',
+                'id': 'userSpecialization'
+            }
+        ),
+        choices=((str(Specialty), str(Specialty)) for Specialty in Specialty.objects.all())
+    )
+
+    salary_min = forms.IntegerField(
+        label='Зарплата от',
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'id': 'vacancySalaryMin',
+                }
+        )
+    )
+
+    salary_max = forms.IntegerField(
+        label='Зарплата до',
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'id': 'vacancySalaryMax',
+                }
+        )
+    )
+
+    skills = forms.CharField(
+        max_length=200,
+        label='Требуемые навыки',
+        widget=forms.Textarea(
+            attrs={
+                'rows': '3',
+                'class': 'form-control',
+                'id': 'vacancySkills',
+                'style': "color:#000;"
+            }
+        )
+    )
+
+    description = forms.CharField(
+        max_length=200,
+        label='Описание',
+        widget=forms.Textarea(
+            attrs={
+                'rows': '13',
+                'class': 'form-control',
+                'id': 'vacancyDescription',
+                'style': "color:#000;"
+            }
+        )
+    )
+
+    class Meta:
+        model = Vacancy
+        fields = ('title', 'salary_min', 'salary_max', 'skills', 'description', )

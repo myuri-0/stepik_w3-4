@@ -5,8 +5,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
 from django.views.generic import CreateView
 
-from app_vacancies.form import ApplicationForm, CompanyForm
-from app_vacancies.models import Specialty, Company, Vacancy
+from app_vacancies.form import ApplicationForm, CompanyForm, MyVacancyEditForm
+from app_vacancies.models import Specialty, Company, Vacancy, Application
 
 
 class MainView(View):
@@ -14,8 +14,7 @@ class MainView(View):
     def get(self, request):
         specialties = Specialty.objects.all()
         company = Company.objects.all()
-        return render(request, 'index.html', {"heading": 'Джуманджи',
-                                              "specialties": specialties,
+        return render(request, 'index.html', {"specialties": specialties,
                                               "company": company,
                                               })
 
@@ -26,7 +25,6 @@ class VacanciesView(View):
         vacancies = Vacancy.objects.all()
         total = Vacancy.objects.order_by("title").count()
         return render(request, "vacancies.html", {"title": 'Все вакансии',
-                                                  "heading": 'Вакансии | Джуманджи',
                                                   "vacancies": vacancies,
                                                   "total": total,
                                                   })
@@ -39,7 +37,6 @@ class CategoryView(View):
         speciality = Specialty.objects.get(code=categories)
         vacancies = Vacancy.objects.filter(specialty=speciality)
         return render(request, 'vacancies.html', {"title": categories,
-                                                  "heading": 'Вакансии | Джуманджи',
                                                   "vacancies": vacancies,
                                                   })
 
@@ -51,8 +48,7 @@ class CompanyView(View):
         firms = Company.objects.filter(id=company_id)
         company_filter = Company.objects.get(id=company_id)
         vacancies = Vacancy.objects.filter(company=company_filter)
-        return render(request, 'company.html', {"heading": 'Компания | Джуманджи',
-                                                "vacancies": vacancies,
+        return render(request, 'company.html', {"vacancies": vacancies,
                                                 "firms": firms,
                                                 })
 
@@ -63,8 +59,7 @@ class VacancyView(View):
         get_object_or_404(Vacancy.objects.filter(id=vacancy_id))
         vacancies = Vacancy.objects.filter(id=vacancy_id)
         id_vacancy = vacancy_id
-        return render(request, 'vacancy.html', {"heading": 'Вакансия | Джуманджи',
-                                                "vacancies": vacancies,
+        return render(request, 'vacancy.html', {"vacancies": vacancies,
                                                 "vacancy_form": ApplicationForm,
                                                 'vacancy_id': id_vacancy
                                                 })
@@ -94,7 +89,6 @@ class SentView(View):
         return render(
             request, 'sent.html', context={
                 'vacancy': vacancy,
-                "heading": "Отклик отправлен",
             }
         )
 
@@ -102,7 +96,75 @@ class SentView(View):
 class MyVacancyView(View):
 
     def get(self, request):
-        return render(request, "vacancy-list.html.html")
+        user = request.user
+        company = Company.objects.filter(owner=user).first()
+        if company is None:
+            return redirect('/mycompany/create/')
+        vacancies = Vacancy.objects.filter(company=company).all()
+        return render(request, 'vacancy_list.html', context={
+                'vacancies': vacancies,
+            }
+        )
+
+
+class MyVacancyEditView(View):
+    model_changed = False
+
+    def get(self, request, id_vacancy):
+        vacancy = Vacancy.objects.filter(id=id_vacancy).first()
+        user = request.user
+        company = Company.objects.filter(owner=user).first()
+        if vacancy:
+            form = MyVacancyEditForm(instance=vacancy)
+        else:
+            specialty = Specialty.objects.all().first()
+            vacancy = Vacancy.objects.create(
+                title='Введите название вакансии',
+                company=company,
+                skills='Введите требуемые навыки',
+                description='Введите описание',
+                salary_min=0,
+                salary_max=0,
+                specialty=specialty
+            )
+            form = MyVacancyEditForm(instance=vacancy)
+        applications = Application.objects.filter(vacancy=vacancy).all()
+        return render(
+            request, 'vacancy_edit.html',
+            context={
+                'applications': applications,
+                'company': company,
+                'form': form,
+                'model_changed': self.model_changed,
+                'vacancy': vacancy
+            }
+        )
+
+    def post(self, request, id_vacancy):
+        vacancy = Vacancy.objects.filter(id=id_vacancy).first()
+        user = request.user
+        company = Company.objects.filter(owner=user).first()
+        form = MyVacancyEditForm(request.POST, instance=vacancy)
+        if form.is_valid():
+            specialty = Specialty.objects.filter(title=request.POST['specialty']).first()
+            post_form = form.save(commit=False)
+            post_form.specialty = specialty
+            post_form.company = company
+            post_form.save()
+            self.model_changed = True
+        else:
+            form = MyVacancyEditForm(instance=vacancy)
+        applications = Application.objects.filter(vacancy=vacancy).all()
+        return render(
+            request, 'vacancy_edit.html',
+            context={
+                'applications': applications,
+                'company': company,
+                'form': form,
+                'model_changed': self.model_changed,
+                'vacancy': vacancy,
+            }
+        )
 
 
 class MyCompanyView(View):
