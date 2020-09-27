@@ -20,16 +20,13 @@ urlpatterns = [
     path('mycompany/vacancies/', MyVacancyView.as_view(), name='myvacancy'),
     path('mycompany/vacancies/<int:id_vacancy>/', MyVacancyEditView.as_view()),
     path('mycompany/create/', MyCompanyCreateView.as_view()),
-]
-
-handler404 = custom_handler404
-handler500 = custom_handler500
-
-urlpatterns += [
     path('register/', MySignupView.as_view(), name='register'),
     path('login/', MyLoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
 ]
+
+handler404 = custom_handler404
+handler500 = custom_handler500
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
